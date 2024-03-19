@@ -1,0 +1,5 @@
+pywin32
+pynput
+pillow
+customtkinter
+python-dotenv
