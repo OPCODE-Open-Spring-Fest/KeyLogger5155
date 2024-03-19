@@ -1,0 +1,1 @@
+All the captured information will be saved in this directory
