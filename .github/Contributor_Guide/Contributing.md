@@ -40,4 +40,5 @@ Step 1: Clone this repository on your local machine. Make sure you have installe
 
 Step 2: Run "cd KeyLogger5155" on the terminal to move to the cloned repository. After that run "npm i" to install all the required dependencies.
 
-Step 3: Run 'guikeylogger.py' to run the program OR simply run the  following command:    python -u "<COMPLETE_ADDRESS_TO_WHERE_guikeylogger_IS_PRESENT>\guikeylogger.py"
+Step 3: 
+ Run 'guikeylogger.py' by clicking on the run program button on your IDE  OR  simply run the  following command:    python -u "<COMPLETE_ADDRESS_TO_WHERE_guikeylogger.py_IS_LOCATED>\guikeylogger.py"
