@@ -1,12 +1,12 @@
-# Contribute to <Project_Name>
+# Contribute to KeyLogger5155
 
-Thank you for taking the time to contribute to <project_name>! We really appreciate it. 
+Thank you for taking the time to contribute to KeyLogger5155! We really appreciate it. 
 
 Before contributing, please make sure to read the [Code of Conduct](../../CODE_OF_CONDUCT.md). We expect you to follow it in all your interactions with the project.
 
-## New to <Project_Name>?
+## New to KeyLogger5155?
 
-If you are new to <Project_Name>, please take a look at the [documentation](./Project_Tour.md). It is a great place to start.
+If you are new to KeyLogger5155, please take a look at the [documentation](./Project_Tour.md). It is a great place to start.
 
 ## New Contributor Guide
 
@@ -22,13 +22,13 @@ If you find a bug in the source code, you can help us by [submitting an issue](.
 
 ### Suggesting Enhancements
 
-If you want to suggest an enhancement to <Project_Name>, please [submit an issue](../ISSUE_TEMPLATE/feature_request.yaml).
+If you want to suggest an enhancement to KeyLogger5155, please [submit an issue](../ISSUE_TEMPLATE/feature_request.yaml).
 
 ### Pull Requests
 
-If you want to contribute to <Project_Name>, submit a pull request.
+If you want to contribute to KeyLogger5155, submit a pull request.
 
-- url: `https://github.com/OPCODE-Open-Spring-Fest/<project_Name>/compare/branch...YOURGITHUBUSERNAME:<project_Name>:BRANCH?quick_pull=1&template=pr.md`
+- url: `https://github.com/OPCODE-Open-Spring-Fest/KeyLogger5155/compare/branch...YOURGITHUBUSERNAME:KeyLogger5155:BRANCH?quick_pull=1&template=pr.md`
   
 ### Requirements
 
