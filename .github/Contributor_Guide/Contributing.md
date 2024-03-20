@@ -32,6 +32,12 @@ If you want to contribute to KeyLogger5155, submit a pull request.
   
 ### Requirements
 
+Python, NodeJS
 
 ### Setup
 
+Step 1: Clone this repository on your local machine. Make sure you have installed all the pre-requisites.
+
+Step 2: Run "cd KeyLogger5155" on the terminal to move to the cloned repository. After that run "npm i" to install all the required dependencies.
+
+Step 3: Run 'guikeylogger.py' to run the program OR simply run the  following command:    python -u "<COMPLETE_ADDRESS_TO_WHERE_guikeylogger_IS_PRESENT>\guikeylogger.py"
