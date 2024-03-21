@@ -43,4 +43,9 @@ Step 2: Run "cd KeyLogger5155" on the terminal to move to the cloned repository.
 Step 3: Move to app directory ('cd app') and run 'pip install -r requirements.txt' on  your terminal .
 
 Step 4: 
- Run 'guikeylogger.py' by clicking on the run program button on your IDE  OR  simply run the  following command:    python -u "<COMPLETE_PATH_TO_WHERE_guikeylogger.py_IS_LOCATED>\guikeylogger.py"
+ Run 'guikeylogger.py' by simply running the following command:
+ 
+    For Windows:-
+    python guikeylogger.py
+    For Linux:-
+    python3 guikeylogger.py
