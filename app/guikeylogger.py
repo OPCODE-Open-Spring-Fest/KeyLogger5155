@@ -8,7 +8,6 @@ from time import sleep
 import socket
 import platform
 from pynput.keyboard import Key, Listener
-import time
 import os
 from requests import get
 import threading
