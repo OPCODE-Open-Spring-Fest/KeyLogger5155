@@ -1,6 +1,4 @@
-pywin32
 pynput
 Pillow
 customtkinter
 python-dotenv
-requests

