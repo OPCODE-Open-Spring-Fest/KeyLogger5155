@@ -6,5 +6,5 @@ If you want more information regarding the project you can read the [Project Doc
 
 Copyright (c)
 HackElite
-IIITBH. All rights reserved
-
+IIITBH. All rights reserved.
+.
