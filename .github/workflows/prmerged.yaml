@@ -1,11 +1,10 @@
 name: On Pull Request Merge
 
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
 
 jobs:
-
   on-merge:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged == true }}
