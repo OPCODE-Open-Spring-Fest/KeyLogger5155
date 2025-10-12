@@ -195,7 +195,12 @@ def on_button_click():
 set_appearance_mode("dark")
 root = CTk()  # Creating root window using customTkinter, it allows to change color of Title bar unlike the official tkinter
 root.geometry("800x600")
+root.resizable(False, False)
 root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Main frame to hold all widgets and center them
+main_frame = CTkFrame(root, fg_color="transparent")
+main_frame.pack(expand=True)
 
 # Set initial button text
 btnStr = StringVar()
@@ -208,30 +213,32 @@ root.after(201, lambda: root.iconbitmap('cracking.ico'))
 image = Image.open('cracking.png')
 resize_image = image.resize((300, 300))
 img = ImageTk.PhotoImage(resize_image)
-icon = CTkLabel(root, image=img, text="")
+icon = CTkLabel(main_frame, image=img, text="")
 icon.pack(pady=(20, 0))
 
 # Set window title
 root.title("Key Logger 5155")
 
 # Display title label
-Title = CTkLabel(root, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"), text_color="green")
+Title = CTkLabel(main_frame, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"), text_color="#00ff00")
 Title.pack(pady=(10, 20))
 
 # Frame for input widgets
-InputFrame = CTkFrame(root, fg_color="transparent")
+InputFrame = CTkFrame(main_frame, fg_color="transparent")
 InputFrame.pack(pady=10)
 
 # Widgets for email address entry
 receiver_label = CTkLabel(InputFrame, text="Recipient's E-mail Address : ", font=("Cascadia Code", 13, "bold"),
-                          text_color="green")
-receiver_entry = CTkEntry(InputFrame, width=300, font=("Cascadia Code", 13, "bold"))
+                          text_color="#00ff00")
+receiver_entry = CTkEntry(InputFrame, width=300, font=("Cascadia Code", 13, "bold"),
+                          placeholder_text="Enter recipient's email...", border_color="#00ff00", border_width=2)
 receiver_entry.grid(row=0, column=1, padx=10)
 receiver_label.grid(row=0, column=0)
 
 # Button to start/stop keylogger
-button = CTkButton(root, textvariable=btnStr, command=on_button_click, width=200,
-                   font=("Cascadia Code", 13, "bold"), fg_color="green", hover_color="#006400")
+button = CTkButton(main_frame, textvariable=btnStr, command=on_button_click, width=200,
+                   font=("Cascadia Code", 13, "bold"), fg_color="#00ff00", hover_color="#008F11",
+                   text_color="#000000", corner_radius=6, border_width=2, border_color="#000000")
 button.pack(pady=20)
 
 # Run the main event loop
