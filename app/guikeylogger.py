@@ -12,11 +12,11 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
-from tkinter import Label, Frame, Entry, Button, messagebox, StringVar, Tk
+from tkinter import messagebox, StringVar, Tk
 from urllib.request import urlopen
 
 from PIL import ImageGrab, Image, ImageTk
-from customtkinter import CTk
+from customtkinter import CTk, CTkLabel, CTkFrame, CTkEntry, CTkButton, set_appearance_mode
 from dotenv import load_dotenv
 from pynput.keyboard import Listener
 
@@ -192,10 +192,15 @@ def on_button_click():
 
 
 # Create the root window
+set_appearance_mode("dark")
 root = CTk()  # Creating root window using customTkinter, it allows to change color of Title bar unlike the official tkinter
 root.geometry("800x600")
-root.config(bg="black")
+root.resizable(False, False)
 root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Main frame to hold all widgets and center them
+main_frame = CTkFrame(root, fg_color="transparent")
+main_frame.pack(expand=True)
 
 # Set initial button text
 btnStr = StringVar()
@@ -208,31 +213,33 @@ root.after(201, lambda: root.iconbitmap('cracking.ico'))
 image = Image.open('cracking.png')
 resize_image = image.resize((300, 300))
 img = ImageTk.PhotoImage(resize_image)
-icon = Label(root, image=img, bg="black", width=300, height=400)
-icon.pack()
+icon = CTkLabel(main_frame, image=img, text="")
+icon.pack(pady=(20, 0))
 
 # Set window title
 root.title("Key Logger 5155")
 
 # Display title label
-Title = Label(root, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"), pady=20, bg="black", fg="green")
-Title.pack()
+Title = CTkLabel(main_frame, text="Key Logger 5155", font=("Cascadia Code", 50, "bold"), text_color="#00ff00")
+Title.pack(pady=(10, 20))
 
 # Frame for input widgets
-InputFrame = Frame(root, bg="black", pady=20)
-InputFrame.pack()
+InputFrame = CTkFrame(main_frame, fg_color="transparent")
+InputFrame.pack(pady=10)
 
 # Widgets for email address entry
-receiver_label = Label(InputFrame, text="Recipients E-mail Address : ", font=("Cascadia Code", 13, "bold"), pady=20,
-                       bg="black", fg="green")
-receiver_entry = Entry(InputFrame, bg="black", fg="green", width=35, font=("Cascadia Code", 13, "bold"))
-receiver_entry.grid(row=0, column=1)
+receiver_label = CTkLabel(InputFrame, text="Recipient's E-mail Address : ", font=("Cascadia Code", 13, "bold"),
+                          text_color="#00ff00")
+receiver_entry = CTkEntry(InputFrame, width=300, font=("Cascadia Code", 13, "bold"),
+                          placeholder_text="Enter recipient's email...", border_color="#00ff00", border_width=2)
+receiver_entry.grid(row=0, column=1, padx=10)
 receiver_label.grid(row=0, column=0)
 
 # Button to start/stop keylogger
-button = Button(root, textvariable=btnStr, command=on_button_click, width=30, bg="green",
-                font=("Cascadia Code", 13, "bold"))
-button.pack()
+button = CTkButton(main_frame, textvariable=btnStr, command=on_button_click, width=200,
+                   font=("Cascadia Code", 13, "bold"), fg_color="#00ff00", hover_color="#008F11",
+                   text_color="#000000", corner_radius=6, border_width=2, border_color="#000000")
+button.pack(pady=20)
 
 # Run the main event loop
 root.mainloop()
