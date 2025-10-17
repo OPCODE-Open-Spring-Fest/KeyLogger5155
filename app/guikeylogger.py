@@ -214,7 +214,7 @@ root.after(201, lambda: root.iconbitmap('cracking.ico'))
 # Display an image
 image = Image.open('cracking.png')
 resize_image = image.resize((300, 300))
-img = CTkImage(light_image=resize_image, size=(300, 300))
+img = CTkImage(light_image=resize_image, size=(240, 240))
 icon = CTkLabel(main_frame, image=img, text="")
 icon.pack(pady=(20, 0))
 
