@@ -16,7 +16,7 @@ from tkinter import messagebox, StringVar, Tk
 from urllib.request import urlopen
 
 from PIL import ImageGrab, Image, ImageTk
-from customtkinter import CTk, CTkLabel, CTkFrame, CTkEntry, CTkButton, set_appearance_mode
+from customtkinter import CTk, CTkLabel, CTkFrame, CTkEntry, CTkButton, set_appearance_mode,CTkImage
 from dotenv import load_dotenv
 from pynput.keyboard import Listener
 
@@ -172,11 +172,13 @@ def start_logger():
 def on_button_click():
     global state, toAddr, listener, stopFlag, receiver_entry, btnStr
     toAddr = receiver_entry.get()
-    if receiver_entry['state'] == 'normal':
-        receiver_entry['state'] = 'disabled'
+
+    current_state = receiver_entry.cget("state")
+    if current_state == 'normal':
+        receiver_entry.configure(state="disabled")
         btnStr.set("Starting...")
     else:
-        receiver_entry['state'] = 'normal'
+        receiver_entry.configure(state="normal")
         btnStr.set("Stopping...")
     if state == 0:
         state = 1
@@ -212,7 +214,7 @@ root.after(201, lambda: root.iconbitmap('cracking.ico'))
 # Display an image
 image = Image.open('cracking.png')
 resize_image = image.resize((300, 300))
-img = ImageTk.PhotoImage(resize_image)
+img = CTkImage(light_image=resize_image, size=(240, 240))
 icon = CTkLabel(main_frame, image=img, text="")
 icon.pack(pady=(20, 0))
 
