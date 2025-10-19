@@ -1,3 +1,4 @@
 .env
 data/*.txt
 data/*.png
+data/screenshots
