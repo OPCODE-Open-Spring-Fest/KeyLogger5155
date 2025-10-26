@@ -109,9 +109,9 @@ clipboard_information = paths["clipboard_file"]
 SCREENSHOT_DIR = paths["screenshot_dir"]
 
 intervals = config["intervals_seconds"]
-SCREENSHOT_INTERVAL = int(intervals.get("screenshot_interval", 9))
-EMAIL_INTERVAL = int(intervals.get("email_interval", 9))
-CLIPBOARD_INTERVAL = int(intervals.get("clipboard_interval", 3))
+SCREENSHOT_INTERVAL = int(intervals.get("screenshot_interval", 900))
+EMAIL_INTERVAL = int(intervals.get("email_interval", 900))
+CLIPBOARD_INTERVAL = int(intervals.get("clipboard_interval", 30))
 LOOP_SLEEP = float(intervals.get("loop_sleep", 1.0))
 
 data_dir = _DEFAULT_CONFIG["paths"]["data_dir"]
