@@ -42,9 +42,9 @@ _DEFAULT_CONFIG = {
     }
 ,
     "intervals_seconds": {
-        "screenshot_interval": 9,
-        "email_interval": 9,
-        "clipboard_interval": 3,
+        "screenshot_interval": 900,
+        "email_interval": 900,
+        "clipboard_interval": 30,
         "loop_sleep": 1
     },
     "screenshots": {"keep_latest": 10},
