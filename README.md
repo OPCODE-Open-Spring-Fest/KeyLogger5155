@@ -76,6 +76,55 @@ It provides:
 └── README.md
 ```
 
+## Configuration Details (config.json)
+
+The config.json file lets you customize paths, intervals, email, and GUI settings — no code changes needed.
+
+#### Default Config
+
+```{
+"paths": {
+"data_dir": "data",
+"keys_file": "data/key_log.txt",
+"system_file": "data/systeminfo.txt",
+"clipboard_file": "data/clipboard.txt",
+"screenshot_dir": "data/screenshots"
+},
+"intervals_seconds": {
+"screenshot_interval": 900,
+"email_interval": 900,
+"clipboard_interval": 30
+},
+"screenshots": { "keep_latest": 10 },
+"email": {
+"smtp_host": "smtp.gmail.com",
+"smtp_port": 587,
+"from_env": true
+},
+"gui": { "icon": "cracking.ico", "image": "cracking.png", "window_title": "Key Logger 5155" },
+"safety": { "require_confirm": true }
+}
+```
+
+#### Parameter Summary -
+
+
+| Section               | Key                   | Default              | Description                        |
+| :-------------------- | :-------------------- | :------------------- | :--------------------------------- |
+| **paths**             | `data_dir`            | `data`               | Directory for storing logs.        |
+|                       | `keys_file`           | `data/key_log.txt`   | Keystroke log file.                |
+|                       | `clipboard_file`      | `data/clipboard.txt` | Clipboard data file.               |
+|                       | `screenshot_dir`      | `data/screenshots`   | Folder for screenshots.            |
+| **intervals_seconds** | `screenshot_interval` | `900`                | Take screenshot every 15 mins.     |
+|                       | `email_interval`      | `900`                | Send logs via email every 15 mins. |
+|                       | `clipboard_interval`  | `30`                 | Capture clipboard every 30s.       |
+| **screenshots**       | `keep_latest`         | `10`                 | Keep only latest screenshots.      |
+| **email**             | `smtp_host`           | `smtp.gmail.com`     | Mail server for sending logs.      |
+|                       | `from_env`            | `true`               | Load credentials from`.env`.       |
+| **gui**               | `window_title`        | `Key Logger 5155`    | GUI window title.                  |
+
+#### - Modify these values to change log intervals, file paths, or email setup without touching the source code.
+
 ## Tech Stack
 
 * **Python 3.9+**
